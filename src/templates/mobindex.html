@@ -1,0 +1,77 @@
+<!doctyle html>
+<head>
+<title>Festival, Music, Concert and Event Tickets Australia Wide!</title>
+<meta name="keywords" content="music tickets, concert tickets, festival tickets, music festival tickets, event tickets, sport tickets, events, gigs, australia" />
+<meta name="descripton" content="Find festival, music, concert and event tickets Australia wide!" />
+<meta name="viewport" content="width=device-width, initial-scale=0.8, user-scalable=yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<link href="/static/mobstyle.css?v=2" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="divContainer">
+
+<h1>OzEvnts.com</h1>
+<hr/>
+<h2>Find Event Tickets Australia Wide!</h2>
+
+<form id="searchForm" action="/search">
+    <input id="searchBox" type="text" name="Event" value="{{ selectedEvent }}" maxlength="30" placeholder="Enter event name" />
+    <br />
+    <select id="stateSelect" name="State">
+        <option value="All" {{ 'selected="selected"' if selectedState=="All"}}>All States</option>
+        <option value="ACT" {{ 'selected="selected"' if selectedState=="ACT"}}>ACT</option>
+        <option value="NSW" {{ 'selected="selected"' if selectedState=="NSW"}}>NSW</option>
+        <option value="QLD" {{ 'selected="selected"' if selectedState=="QLD"}}>QLD</option>
+        <option value="SA"  {{ 'selected="selected"' if selectedState=="SA" }}>SA</option>
+        <option value="TAS" {{ 'selected="selected"' if selectedState=="TAS"}}>TAS</option>
+        <option value="VIC" {{ 'selected="selected"' if selectedState=="VIC"}}>VIC</option>
+        <option value="WA"  {{ 'selected="selected"' if selectedState=="WA" }}>WA</option>
+    </select>
+    <br />
+    <select id="categorySelect" name="Category">
+        <option value="0" {{ 'selected="selected"' if selectedCategory=="0"}}>All Categories</option>
+        <option value="1" {{ 'selected="selected"' if selectedCategory=="1"}}>Music & Festivals</option>
+        <option value="2" {{ 'selected="selected"' if selectedCategory=="2"}}>Sport</option>
+        <option value="3" {{ 'selected="selected"' if selectedCategory=="3"}}>Art & Culture</option>
+    </select>
+    <br /><br />
+    <input id="searchSubmit" type="submit" value="Search" />
+</form>
+
+<table class="eventTable" id="eventTable">
+<thead>
+<tr>
+    <th>Date</th>
+    <th>Event</th>
+    <th>State</th>
+    <th>Vendor</th>
+</tr>
+</thead>
+
+<tbody>
+    {% for item in eventInfo %}
+        <tr>
+            <td>{{ item.eventDateTime.strftime("%x") }}</td>
+            <td>{{ item.eventName }}</td>
+            <td>{{ item.venueState }}</td>
+            <td><a href="{{ item.URL }}">{{ item.vendorName }}</a></td> 
+        </tr>
+        {% for ticketItem in item.ticketInfoList %}
+            <tr>
+                <td></td>
+	        <td>{{ ticketItem.ticketType }}</td>
+                <td>${{ ticketItem.ticketPrice + ticketItem.bookingFee }}</td>
+                <td>{% if ticketItem.soldOut %} (SOLD OUT!) {% endif %}</td>
+            </tr>
+        {% endfor %}
+    {% endfor %}
+</tbody>
+
+<tfoot>
+<tr><td colspan="3">Indexed by OzEvnts.com</td></tr>
+</tfoot>
+</table>
+</div>
+</body>
+</html>

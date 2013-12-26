@@ -1,0 +1,84 @@
+<!doctyle html>
+<head>
+<title>Festival, Music, Concert and Event Tickets Australia Wide!</title>
+<meta name="keywords" content="music tickets, concert tickets, festival tickets, music festival tickets, event tickets, sport tickets, events, gigs, australia" />
+<meta name="descripton" content="Find festival, music, concert and event tickets Australia wide!" />
+<link href="/static/style.css?v=1" rel="stylesheet" type="text/css" media="screen" />
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+</head>
+<body>
+<div id="divContainer">
+
+<h1>OzEvnts.com</h1>
+<h2>Find Event Tickets Australia Wide!</h2>
+
+<form id="searchForm" action="/search">
+    <input id="searchBox" class="search_box" type="text" name="Event" value="{{ selectedEvent }}" maxlength="30" placeholder="Enter event name" />
+    <select id="stateSelect" name="State">
+        <option value="All" {{ 'selected="selected"' if selectedState=="All"}}>All States</option>
+        <option value="ACT" {{ 'selected="selected"' if selectedState=="ACT"}}>ACT</option>
+        <option value="NSW" {{ 'selected="selected"' if selectedState=="NSW"}}>NSW</option>
+        <option value="QLD" {{ 'selected="selected"' if selectedState=="QLD"}}>QLD</option>
+        <option value="SA"  {{ 'selected="selected"' if selectedState=="SA" }}>SA</option>
+        <option value="TAS" {{ 'selected="selected"' if selectedState=="TAS"}}>TAS</option>
+        <option value="VIC" {{ 'selected="selected"' if selectedState=="VIC"}}>VIC</option>
+        <option value="WA"  {{ 'selected="selected"' if selectedState=="WA" }}>WA</option>
+    </select>
+    <select id="categorySelect" name="Category">
+        <option value="0" {{ 'selected="selected"' if selectedCategory=="0"}}>All Categories</option>
+        <option value="1" {{ 'selected="selected"' if selectedCategory=="1"}}>Music & Festivals</option>
+        <option value="2" {{ 'selected="selected"' if selectedCategory=="2"}}>Sport</option>
+        <option value="3" {{ 'selected="selected"' if selectedCategory=="3"}}>Art & Culture</option>
+    </select>
+    <input id="searchSubmit" type="submit" value="Search" />
+</form>
+
+<table class="eventTable" id="eventTable">
+<thead>
+<tr>
+    <th width=16%>Date</th>
+    <th width=30%>Event</th>
+    <th>State</th>
+    <th>Ticket Type</th>
+    <th>Ticket Price</th>
+    <th>Booking Fee</th>
+    <th>Total Price</th>
+    <th width=13%>Vendor</th>
+</tr>
+</thead>
+
+<tbody>
+    {% for item in eventInfo %}
+        {% for ticketItem in item.ticketInfoList %}
+            <tr>
+                <td>{{ item.eventDateTime.strftime("%c") }}</td>
+                <td>{{ item.eventName }}</td>
+                <td>{{ item.venueState }}</td>
+                <td>{{ ticketItem.ticketType }}</td>
+                <td>${{ ticketItem.ticketPrice }}</td>
+                <td>{% if not ticketItem.bookingFee %}inc{% else %}${{ ticketItem.bookingFee }}{% endif %}</td>
+                <td>${{ ticketItem.ticketPrice + ticketItem.bookingFee }}</td>
+                <td><a href="{{ item.URL }}">{{ item.vendorName }}</a>{% if ticketItem.soldOut %} (SOLD OUT!) {% endif %}</td> 
+            </tr>
+        {% endfor %}
+    {% endfor %}
+</tbody>
+
+<tfoot>
+<tr><td colspan="3">Indexed by OzEvnts.com</td></tr>
+</tfoot>
+</table>
+<!-- make each row clickable taking user to vendor's url for that event -->
+<script type="text/javascript">
+    $(function ()
+    {
+        $('#eventTable tr').click(function ()
+        {
+            location.href = $(this).find('td a').attr('href');
+        });
+    });
+</script>
+
+</div>
+</body>
+</html>

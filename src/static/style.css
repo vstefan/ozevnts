@@ -1,0 +1,112 @@
+/*** central column on page ***/
+div#divContainer
+{
+max-width: 1200px;
+margin: 0 auto;
+font-family: Calibri;
+padding: 0.5em 1em 1em 1em;
+
+/* rounded corners */
+-moz-border-radius: 10px;
+-webkit-border-radius: 10px;
+border-radius: 10px;
+
+/* add gradient */
+background-color: #BF8F30;
+background: -webkit-gradient(linear, left top, left bottom, from(#BF8F30), to(#FFBF40));
+background: -moz-linear-gradient(top, #BF8F30, #FFBF40);
+
+/* add box shadows */
+-moz-box-shadow: 5px 5px 10px rgba(0,0,0,0.3);
+-webkit-box-shadow: 5px 5px 10px rgba(0,0,0,0.3);
+box-shadow: 5px 5px 10px rgba(0,0,0,0.3); 
+}
+
+h1 {color:#dadada; font-size:1.5em;}
+h2 {color:#dadada; font-size:1.0em;}
+
+/*** event table formatting ***/
+table.eventTable {
+width: 100%;
+border-collapse:collapse;
+text-align:left;
+color: #606060;
+}
+
+/*** table's thead section, head row style ***/
+table.eventTable thead tr td {
+background-color: White;
+vertical-align:middle;
+padding: 0.6em;
+font-size:0.8em;
+}
+
+/*** table's thead section, column header style ***/
+table.eventTable thead tr th
+{
+padding: 0.5em;
+/* add gradient */
+background-color: #BF8F30;
+background: -webkit-gradient(linear, left top, left bottom, from(#BF8F30), to(#FFBF40));
+background: -moz-linear-gradient(top, #BF8F30, #FFBF40);
+color: #A66F00;
+}
+
+/*** table's tbody section, odd rows style ***/
+table.eventTable tbody tr:nth-child(odd) {
+background-color: #fafafa;
+}
+
+/*** hover effect to table's tbody odd rows ***/
+table.eventTable tbody tr:nth-child(odd):hover
+{
+cursor:pointer;
+/* add gradient */
+background-color: #BF8F30;
+background: -webkit-gradient(linear, left top, left bottom, from(#BF8F30), to(#FFBF40));
+background: -moz-linear-gradient(top, #BF8F30, #FFBF40);
+color: #dadada;
+}
+
+/*** table's tbody section, even rows style ***/
+table.eventTable tbody tr:nth-child(even) {
+background-color: #efefef;
+}
+
+/*** hover effect to apply to table's tbody section, even rows ***/
+table.eventTable tbody tr:nth-child(even):hover
+{
+cursor:pointer;
+/* add gradient */
+background-color: #BF8F30;
+background: -webkit-gradient(linear, left top, left bottom, from(#BF8F30), to(#FFBF40));
+background: -moz-linear-gradient(top, #BF8F30, #FFBF40);
+color: #dadada;
+}
+
+/*** table's tbody section, last row style ***/
+table.eventTable tbody tr:last-child {
+border-bottom: solid 1px #404040;
+}
+
+/*** table's tbody section, separator row pseudo-class ***/
+table.eventTable tbody tr.separator {
+/* add gradient */
+background-color: #BF8F30;
+background: -webkit-gradient(linear, left top, left bottom, from(#BF8F30), to(#FFBF40));
+background: -moz-linear-gradient(top, #BF8F30, #FFBF40);
+color: #dadada;
+}
+
+/*** table's td element, all section ***/
+table.eventTable td {
+vertical-align:middle;
+padding: 0.5em;
+}
+
+/*** table's tfoot section ***/
+table.eventTable tfoot{
+text-align:left;
+color:#A66F00;
+text-shadow: 0 1px 1px rgba(255,255,255,0.3);
+} 
