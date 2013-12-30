@@ -268,8 +268,7 @@ BEGIN
       and ve.invalid_ind is null
       and ve.vendor_id = v.id
       and vet.vendor_event_id = ve.id
-    order by ve.event_timestamp asc, ve.id asc, vet.ticket_num asc
-    group by ve.id;
+    order by ve.event_timestamp asc, ve.id asc, vet.ticket_num asc;
 
     return $1;
 END;

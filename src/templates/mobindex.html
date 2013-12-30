@@ -11,7 +11,7 @@
 <body>
 <div id="divContainer">
 
-<h1>OzEvnts.com</h1>
+<h1>Ozevnts.com</h1>
 <hr/>
 <h2>Find Event Tickets Australia Wide!</h2>
 
@@ -52,7 +52,7 @@
 <tbody>
     {% for item in eventInfo %}
         <tr>
-            <td>{{ item.eventDateTime.strftime("%x") }}</td>
+            <td>{{ item.eventDateTime.strftime("%d/%m/%y") }}</td>
             <td>{{ item.eventName }}</td>
             <td>{{ item.venueState }}</td>
             <td><a href="{{ item.URL }}">{{ item.vendorName }}</a></td> 
@@ -69,7 +69,7 @@
 </tbody>
 
 <tfoot>
-<tr><td colspan="3">Indexed by OzEvnts.com</td></tr>
+<tr><td colspan="3">Indexed by Ozevnts.com</td></tr>
 </tfoot>
 </table>
 </div>
