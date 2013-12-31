@@ -9,7 +9,7 @@ if len(sys.argv) != 2:
 
 vendorId = int(sys.argv[1])
     
-conn = psycopg2.connect(host="192.168.2.105", database="ozevntsdb", user="ozevntsapp", password="test")
+conn = psycopg2.connect(database="ozevntsdb", user="ozevntsapp", password="test")
 crawlerFact = crawlerfactory.CrawlerFactory(conn)
 crawler     = crawlerFact.getCrawler(vendorId)
 

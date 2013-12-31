@@ -55,17 +55,36 @@ def refreshEvents(dbCon, crawlerFact, eventsToRefresh):
         else:
             # same number or more ticket types? only update any changes to existing tickets
             if existingNumTickets == newNumTickets or newNumTickets > existingNumTickets:
-                for idx, newTicketInfo in enumerate(latestEventData.ticketInfoList):
-                    if eventToRefresh.ticketInfoList[idx].hasBeenUpdated(newTicketInfo):
-                        newTicketInfo.update(dbCon, latestEventData.vendorEventId)
+                for idx, existingTicket in enumerate(eventToRefresh.ticketInfoList):
+                    if latestEventData.ticketInfoList[idx].hasBeenUpdated(existingTicket):
+                        latestEventData.ticketInfoList[idx].update(dbCon, latestEventData.vendorEventId)
                         dbCon.commit()
-                        
+
             # if there were more tickets types, now insert the new ones
             if newNumTickets > existingNumTickets:
                 for idx in range(existingNumTickets, newNumTickets):
                     latestEventData.ticketInfoList[idx].create(dbCon, latestEventData.vendorEventId)
                     dbCon.commit()
-                    
+            # less ticket types? mark any non-existent ones as sold out
+            elif newNumTickets < existingNumTickets:
+                for existingTicket in eventToRefresh.ticketInfoList:
+                    if not existingTicket.soldOut:
+                        foundTicket = None
+
+
+                        for newTicket in latestEventData.ticketInfoList:
+                            if newTicket.ticketType == existingTicket.ticketType:
+                                foundTicket = newTicket
+                                break
+
+                        if foundTicket is None:
+                            existingTicket.soldOut = True
+                            existingTicket.update(dbCon, eventToRefresh.vendorEventId)
+                            dbCon.commit()
+                        elif existingTicket.hasBeenUpdated(foundTicket):
+                            foundTicket.update(dbCon, latestEventData.vendorEventId)
+                            dbCon.commit()
+
             eventIdsToMarkRefreshed.append(latestEventData.vendorEventId)
 
     # now mark all events refreshed
