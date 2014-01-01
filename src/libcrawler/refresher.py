@@ -7,103 +7,104 @@ import gc
 #enable for testing memory usage
 #from guppy import hpy
 
-def loadEventsToRefresh(dbCon):
-    """ Loads events to refresh. """
-    eventInfoList = []
-    currentEvent  = None
-    
-    with dbCon.cursor() as cur1:
-        cur1.callproc("ozevnts.get_tickets_to_refresh", ["events_refresh_curname"])
-        
-        with dbCon.cursor("events_refresh_curname") as cur2:
-            for record in cur2:
-                newTicket = libcrawler.TicketInfo(record[4], record[5], record[6], record[7], record[8])
-            
-                # first event or new event?
-                if currentEvent is None or currentEvent.vendorEventId != record[0]:
-                    if currentEvent is not None:
-                        eventInfoList.append(currentEvent)
-                    
-                    currentEvent = libcrawler.EventInfo(record[1], None, None, record[3])
-                    currentEvent.vendorEventId = record[0]
-                    currentEvent.eventDateTime = record[2]
-            
-                currentEvent.ticketInfoList.append(newTicket)
-            
-            # save last event too
-            if currentEvent is not None:
-                eventInfoList.append(currentEvent)
-                    
-    return eventInfoList
-    
-    
-def refreshEvents(dbCon, crawlerFact, eventsToRefresh):
-    eventIdsToMarkRefreshed = []
 
-    for eventToRefresh in eventsToRefresh:    
-        latestEventData = libcrawler.EventInfo(eventToRefresh.vendorId, eventToRefresh.eventTypeId, eventToRefresh.eventName, eventToRefresh.URL)
-        latestEventData.vendorEventId = eventToRefresh.vendorEventId
-        crawler         = crawlerFact.getCrawler(eventToRefresh.vendorId)
-        crawler.loadTicketsForEvent(latestEventData)
-        
-        existingNumTickets = len(eventToRefresh.ticketInfoList)
-        newNumTickets      = len(latestEventData.ticketInfoList)
-        
-        if latestEventData.invalid:
-            latestEventData.invalidateEvent(dbCon)
-            dbCon.commit()
+def load_events_to_refresh(db_con):
+    """ Loads events to refresh. """
+    event_info_list = []
+    current_event   = None
+
+    with db_con.cursor() as cur1:
+        cur1.callproc("ozevnts.get_tickets_to_refresh", ["events_refresh_curname"])
+
+        with db_con.cursor("events_refresh_curname") as cur2:
+            for record in cur2:
+                new_ticket = libcrawler.TicketInfo(record[4], record[5], record[6], record[7], record[8])
+
+                # first event or new event?
+                if current_event is None or current_event.vendor_event_id != record[0]:
+                    if current_event is not None:
+                        event_info_list.append(current_event)
+
+                    current_event = libcrawler.EventInfo(record[1], None, None, record[3])
+                    current_event.vendor_event_id = record[0]
+                    current_event.event_datetime  = record[2]
+
+                current_event.ticket_list.append(new_ticket)
+
+            # save last event too
+            if current_event is not None:
+                event_info_list.append(current_event)
+
+    return event_info_list
+
+
+def refresh_events(db_con, crawler_fact, events_to_refresh):
+    event_ids_to_mark_refreshed = []
+
+    for event_to_refresh in events_to_refresh:
+        latest_event_data = libcrawler.EventInfo(event_to_refresh.vendor_id, event_to_refresh.event_type_id,
+                                                 event_to_refresh.event_name, event_to_refresh.url)
+        latest_event_data.vendor_event_id = event_to_refresh.vendor_event_id
+        crawler = crawler_fact.get_crawler(event_to_refresh.vendor_id)
+        crawler.load_tickets_for_event(latest_event_data)
+
+        existing_num_tickets = len(event_to_refresh.ticket_list)
+        new_num_tickets      = len(latest_event_data.ticket_list)
+
+        if latest_event_data.invalid:
+            latest_event_data.invalidate_event(db_con)
+            db_con.commit()
         else:
             # same number or more ticket types? only update any changes to existing tickets
-            if existingNumTickets == newNumTickets or newNumTickets > existingNumTickets:
-                for idx, existingTicket in enumerate(eventToRefresh.ticketInfoList):
-                    if latestEventData.ticketInfoList[idx].hasBeenUpdated(existingTicket):
-                        latestEventData.ticketInfoList[idx].update(dbCon, latestEventData.vendorEventId)
-                        dbCon.commit()
+            if existing_num_tickets == new_num_tickets or new_num_tickets > existing_num_tickets:
+                for idx, existing_ticket in enumerate(event_to_refresh.ticket_list):
+                    if latest_event_data.ticket_list[idx].has_been_updated(existing_ticket):
+                        latest_event_data.ticket_list[idx].update(db_con, latest_event_data.vendor_event_id)
+                        db_con.commit()
 
             # if there were more tickets types, now insert the new ones
-            if newNumTickets > existingNumTickets:
-                for idx in range(existingNumTickets, newNumTickets):
-                    latestEventData.ticketInfoList[idx].create(dbCon, latestEventData.vendorEventId)
-                    dbCon.commit()
+            if new_num_tickets > existing_num_tickets:
+                for idx in range(existing_num_tickets, new_num_tickets):
+                    latest_event_data.ticket_list[idx].create(db_con, latest_event_data.vendor_event_id)
+                    db_con.commit()
             # less ticket types? mark any non-existent ones as sold out
-            elif newNumTickets < existingNumTickets:
-                for existingTicket in eventToRefresh.ticketInfoList:
-                    if not existingTicket.soldOut:
-                        foundTicket = None
+            elif new_num_tickets < existing_num_tickets:
+                for existing_ticket in event_to_refresh.ticket_list:
+                    if not existing_ticket.sold_out:
+                        found_ticket = None
 
-
-                        for newTicket in latestEventData.ticketInfoList:
-                            if newTicket.ticketType == existingTicket.ticketType:
-                                foundTicket = newTicket
+                        for new_ticket in latest_event_data.ticket_list:
+                            if new_ticket.ticket_type == existing_ticket.ticket_type:
+                                found_ticket = new_ticket
                                 break
 
-                        if foundTicket is None:
-                            existingTicket.soldOut = True
-                            existingTicket.update(dbCon, eventToRefresh.vendorEventId)
-                            dbCon.commit()
-                        elif existingTicket.hasBeenUpdated(foundTicket):
-                            foundTicket.update(dbCon, latestEventData.vendorEventId)
-                            dbCon.commit()
+                        if found_ticket is None:
+                            existing_ticket.sold_out = True
+                            existing_ticket.update(db_con, event_to_refresh.vendor_event_id)
+                            db_con.commit()
+                        elif existing_ticket.has_been_updated(found_ticket):
+                            found_ticket.update(db_con, latest_event_data.vendor_event_id)
+                            db_con.commit()
 
-            eventIdsToMarkRefreshed.append(latestEventData.vendorEventId)
+            event_ids_to_mark_refreshed.append(latest_event_data.vendor_event_id)
 
     # now mark all events refreshed
-    if eventIdsToMarkRefreshed:
-        with dbCon.cursor() as cur1:
-            cur1.callproc("ozevnts.mark_events_refreshed", [eventIdsToMarkRefreshed])
-            dbCon.commit()
-            eventIdsToMarkRefreshed = None
-           
+    if event_ids_to_mark_refreshed:
+        with db_con.cursor() as cur1:
+            cur1.callproc("ozevnts.mark_events_refreshed", [event_ids_to_mark_refreshed])
+            db_con.commit()
+
 # refresher execution starts here
-conn = psycopg2.connect(database="ozevntsdb", user="ozevntsapp", password="test")
+conn = psycopg2.connect(host="localhost", database="ozevntsdb", user="ozevntsapp", password="test")
 crawlerFact = crawlerfactory.CrawlerFactory(conn)
 
 while True:
-    eventsToRefresh = loadEventsToRefresh(conn)
-    refreshEvents(conn, crawlerFact, eventsToRefresh)
-    eventsToRefresh = None
+    events_to_refresh = load_events_to_refresh(conn)
+    refresh_events(conn, crawlerFact, events_to_refresh)
+    events_to_refresh = None
     gc.collect()
     #enable for testing memory usage
     #h = hpy()
     #print h.heap()
-    time.sleep(60*20)
+    print "Finished refresh cycle, sleeping.."
+    time.sleep(60 * 20)

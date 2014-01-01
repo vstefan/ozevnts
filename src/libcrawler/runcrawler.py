@@ -7,13 +7,13 @@ if len(sys.argv) != 2:
     print "Exiting.."
     sys.exit(0)
 
-vendorId = int(sys.argv[1])
-    
+vendor_id = int(sys.argv[1])
+
 conn = psycopg2.connect(database="ozevntsdb", user="ozevntsapp", password="test")
 crawlerFact = crawlerfactory.CrawlerFactory(conn)
-crawler     = crawlerFact.getCrawler(vendorId)
+crawler = crawlerFact.get_crawler(vendor_id)
 
 if crawler is None:
-    print "No crawler found for vendor_id: " + str(vendorId)
-else:    
+    print "No crawler found for vendor_id: " + str(vendor_id)
+else:
     crawler.run()

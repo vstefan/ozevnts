@@ -1,158 +1,160 @@
-import re
-import sys
-import psycopg2
 import decimal
 from bs4 import BeautifulSoup
 from datetime import datetime
 
-import abc
 import libcrawler
 
 
 class MoshtixCrawler(libcrawler.ICrawler):
-
-    def createDateTimeFromMoshTixString(self, dateTimeStr, monthFormatMask):
+    def create_datetime_from_moshtix_str(self, datetime_str, month_format_mask):
         """
             MoshTix uses multiple formats (short & long) for month display.
         """
-        dateTimeStrTokens   = dateTimeStr.split(",")
-        dayMonthTokens      = dateTimeStrTokens[1].lstrip().split(" ")
-            
-        filteredDateTimeStr = dateTimeStrTokens[0] + " " + dayMonthTokens[1][0:len(dayMonthTokens[1])-2] + " " + dayMonthTokens[2] + " " + dateTimeStrTokens[2].lstrip()
-        
-        return datetime.strptime(filteredDateTimeStr, "%I:%M%p %d " + monthFormatMask + " %Y")
+        datetime_str_tokens = datetime_str.split(",")
+        day_month_tokens    = datetime_str_tokens[1].lstrip().split(" ")
 
-    def createDateTimeFromMoshTixEventDateString(self, dateTimeStr):
+        filtered_datetime_str = datetime_str_tokens[0] + " " + day_month_tokens[1][0:len(day_month_tokens[1]) - 2] + \
+            " " + day_month_tokens[2] + " " + datetime_str_tokens[2].lstrip()
+
+        return datetime.strptime(filtered_datetime_str, "%I:%M%p %d " + month_format_mask + " %Y")
+
+    def create_datetime_from_moshtix_event_date_str(self, datetime_str):
         """ 
             extracts starting datetime from formats like "5:00pm, Fri 4th October, 2013"
             and ""9:00pm, Fri 20th December, 2013 - 4:00am, Sat 28th December, 2013" 
         """
-        sepIndex = dateTimeStr.find("-")
-        if sepIndex != -1:
-            return self.createDateTimeFromMoshTixString(dateTimeStr[0:sepIndex-1], "%B")
+        sep_index = datetime_str.find("-")
+        if sep_index != -1:
+            return self.create_datetime_from_moshtix_str(datetime_str[0:sep_index - 1], "%B")
         else:
-            return self.createDateTimeFromMoshTixString(dateTimeStr, "%B")
-            
-    def extractTicketInfo(self, eventInfo, eventPage):
-        ticketType           = None
-        ticketPrice          = None
-        bookingFee           = None
-        soldOut              = False
-        
-        print "Now processing: " + eventInfo.URL
-                
-        # find <div> with id = "event-summary-block"
-        soup                = BeautifulSoup(eventPage.text)
-        eventSummaryDivTag  = soup.find("div", id="event-summary-block")
+            return self.create_datetime_from_moshtix_str(datetime_str, "%B")
 
-        if eventSummaryDivTag is not None:        
-            eventInfo.eventDateTime = self.createDateTimeFromMoshTixEventDateString(eventSummaryDivTag["data-event-date"])
-            venueTokens   = eventSummaryDivTag["data-event-venue"].split(",") 
-            
+    def extract_ticket_info(self, event_info, event_page):
+        ticket_type  = None
+        ticket_price = None
+        booking_fee  = None
+        sold_out     = False
+
+        print "Now processing: " + event_info.url
+
+        # find <div> with id = "event-summary-block"
+        soup = BeautifulSoup(event_page.text)
+        event_summary_div_tag = soup.find("div", id="event-summary-block")
+
+        if event_summary_div_tag is not None:
+            event_info.event_datetime = self.create_datetime_from_moshtix_event_date_str(
+                event_summary_div_tag["data-event-date"])
+            venue_tokens = event_summary_div_tag["data-event-venue"].split(",")
+
             # format examples: "Enigma Bar, SA"
             #                : "Candy's Apartment, Kings Cross, NSW"
             #                : "Duke of Wellington, 146 Flinders St, Melbourne, VIC"
-            if len(venueTokens) >= 2:
-                eventInfo.venueName  = venueTokens[0]
-                eventInfo.venueState = venueTokens[len(venueTokens)-1].lstrip()
-        
-        if eventInfo.eventDateTime is None:
-            raise Exception("Failed to parse event date/time from: " + eventInfo.URL)
+            if len(venue_tokens) >= 2:
+                event_info.venue_name = venue_tokens[0]
+                event_info.venue_state = venue_tokens[len(venue_tokens) - 1].lstrip()
 
-        if eventInfo.venueState is None:
-            raise Exception("Failed to parse venue state from: " + eventInfo.URL)
-            
+        if event_info.event_datetime is None:
+            raise Exception("Failed to parse event date/time from: " + event_info.url)
+
+        if event_info.venue_state is None:
+            raise Exception("Failed to parse venue state from: " + event_info.url)
+
         # find <table> with id = "event-tickettypetable"
-        ticketTableTag = soup.find("table", id="event-tickettypetable")
-        
-        if ticketTableTag is not None:
-            ticketTableBodyTag = ticketTableTag.find("tbody")
-            
-            if ticketTableBodyTag is not None:
-                ticketTableRowTags = ticketTableBodyTag.find_all("tr")
-                
-                # 1 row for each ticket type
-                if ticketTableRowTags is not None and len(ticketTableRowTags) > 0:
-                    ticketNum = 1
-                    for ticketTableRowTag in ticketTableRowTags:
-                        ticketTableRowTagColumnTags = ticketTableRowTag.find_all("td")
-                        
-                        # each ticket type should have 6 columns (ticket type, sale date, ticket price, booking fee, total price, amount of tickets or sold out)
-                        if ticketTableRowTagColumnTags is not None: 
-                            if len(ticketTableRowTagColumnTags) == 7:
-                                ticketType  = ticketTableRowTagColumnTags[0].contents[2].string.strip()                                
-                                ticketPrice = decimal.Decimal(ticketTableRowTagColumnTags[2].string[1:].replace(",",""))
-                                bookingFee  = decimal.Decimal(ticketTableRowTagColumnTags[4].string[1:].replace(",",""))
-                                
-                                if len(ticketTableRowTagColumnTags[6].contents) == 1:
-                                    ticketSellingStr = ticketTableRowTagColumnTags[6].string.strip()
-                                
-                                    if ticketSellingStr.lower() == "allocation exhausted":
-                                        soldOut = True
-                                
-                                eventInfo.ticketInfoList.append(libcrawler.TicketInfo(ticketNum, ticketType, ticketPrice, bookingFee, soldOut))
-                                ticketNum += 1
-                            else:
-                                raise Exception("Unknown length of ticketTableRowTagColumnTags = " + str(len(ticketTableRowTagColumnTags)))
-        else:
-            eventInfo.invalid = True
-        
-        # if this URL had no extracted tickets, add a dummy entry
-        # so this URL will be saved and ignored in the future
-        if not eventInfo.ticketInfoList:
-            eventInfo.invalid = True
-    
-    def extractSubsequentURLs(self, searchResultsSoup, vendorURL):
-        subsequentURLs = []
-        paginationTag  = searchResultsSoup.find("section", class_ = "pagination")
-        
-        if paginationTag is not None:
-            ahrefTags = paginationTag.find_all("a")
-            
-            if ahrefTags is not None and len(ahrefTags) > 0:
-                for ahrefTag in ahrefTags:
-                    if len(ahrefTag["href"]) > 0 and "class" not in ahrefTag:
-                        subsequentURLs.append(vendorURL + ahrefTag["href"])
-                    
-        return subsequentURLs
-                        
-    def extractNewEvents(self, eventTypeId, knownURLs, searchResultsSoup):
-        eventInfoList  = []
-                
-        searchResultDivTags = searchResultsSoup.find_all("div", {"class":"searchresult_content"})
-        
-        if searchResultDivTags is not None and len(searchResultDivTags) > 0:
-            for searchResultDivTag in searchResultDivTags:            
-                URL       = searchResultDivTag.contents[1]["href"]
-                eventName = searchResultDivTag.contents[3].contents[0].string
+        ticket_table_tag = soup.find("table", id="event-tickettypetable")
 
-                if URL is not None and eventName is not None and URL not in knownURLs:
-                    eventInfoList.append(libcrawler.EventInfo(self.vendorId, eventTypeId, eventName, URL))
+        if ticket_table_tag is not None:
+            ticket_table_body_tag = ticket_table_tag.find("tbody")
+
+            if ticket_table_body_tag is not None:
+                ticket_table_row_tags = ticket_table_body_tag.find_all("tr")
+
+                # 1 row for each ticket type
+                if ticket_table_row_tags is not None and len(ticket_table_row_tags) > 0:
+                    ticket_num = 1
+                    for ticket_table_row_tag in ticket_table_row_tags:
+                        ticket_table_row_tag_col_tags = ticket_table_row_tag.find_all("td")
+
+                        # each ticket type should have 6 columns (ticket type, sale date, ticket price,
+                        # booking fee, total price, amount of tickets or sold out)
+                        if ticket_table_row_tag_col_tags is not None:
+                            if len(ticket_table_row_tag_col_tags) == 7:
+                                ticket_type  = ticket_table_row_tag_col_tags[0].contents[2].string.strip()
+                                ticket_price = decimal.Decimal(
+                                    ticket_table_row_tag_col_tags[2].string[1:].replace(",", ""))
+                                booking_fee  = decimal.Decimal(ticket_table_row_tag_col_tags[4].string[1:].replace(
+                                    ",", ""))
+
+                                if len(ticket_table_row_tag_col_tags[6].contents) == 1:
+                                    ticket_selling_str = ticket_table_row_tag_col_tags[6].string.strip()
+
+                                    if ticket_selling_str.lower() == "allocation exhausted":
+                                        sold_out = True
+
+                                event_info.ticket_list.append(
+                                    libcrawler.TicketInfo(ticket_num, ticket_type, ticket_price, booking_fee, sold_out))
+                                ticket_num += 1
+                            else:
+                                raise Exception("Unknown length of ticket_table_row_tag_col_tags = " + str(
+                                    len(ticket_table_row_tag_col_tags)))
+        else:
+            event_info.invalid = True
+
+        # if this url had no extracted tickets, add a dummy entry
+        # so this url will be saved and ignored in the future
+        if not event_info.ticket_list:
+            event_info.invalid = True
+
+    def extract_subsequent_urls(self, search_results_soup):
+        subsequent_urls = []
+        pagination_tag  = search_results_soup.find("section", class_="pagination")
+
+        if pagination_tag is not None:
+            ahref_tags = pagination_tag.find_all("a")
+
+            if ahref_tags is not None and len(ahref_tags) > 0:
+                for ahref_tag in ahref_tags:
+                    if len(ahref_tag["href"]) > 0 and "class" not in ahref_tag:
+                        subsequent_urls.append(self.vendor_url + ahref_tag["href"])
+
+        return subsequent_urls
+
+    def extract_new_events(self, event_type_id, known_urls, search_results_soup):
+        event_list = []
+
+        search_result_div_tags = search_results_soup.find_all("div", {"class": "searchresult_content"})
+
+        if search_result_div_tags is not None and len(search_result_div_tags) > 0:
+            for search_result_div_tag in search_result_div_tags:
+                url = search_result_div_tag.contents[1]["href"]
+                event_name = search_result_div_tag.contents[3].contents[0].string
+
+                if url is not None and event_name is not None and url not in known_urls:
+                    event_list.append(libcrawler.EventInfo(self.vendor_id, event_type_id, event_name, url))
         else:
             raise Exception("No searchresult_content div tags found.")
-            
-        return eventInfoList
 
-    def fetchEventURL(self, URL):
-        return super(MoshtixCrawler, self).fetchEventURL(URL)
-    
-    def extractEventAndTicketInfo(self, eventTypeId, knownURLs, searchResultsSoup):    
-        super(MoshtixCrawler, self).extractEventAndTicketInfo(eventTypeId, knownURLs, searchResultsSoup)
-     
-    def processSearchURL(self, eventTypeId, searchURL, paginatedInd):
-        super(MoshtixCrawler, self).processSearchURL(eventTypeId, searchURL, paginatedInd)
-     
+        return event_list
+
+    def fetch_event_url(self, url):
+        return super(MoshtixCrawler, self).fetch_event_url(url)
+
+    def extract_event_and_ticket_info(self, event_type_id, known_urls, search_results_soup):
+        super(MoshtixCrawler, self).extract_event_and_ticket_info(event_type_id, known_urls, search_results_soup)
+
+    def process_search_url(self, event_type_id, search_url, paginated_ind):
+        super(MoshtixCrawler, self).process_search_url(event_type_id, search_url, paginated_ind)
+
     def run(self):
         super(MoshtixCrawler, self).run()
-        
-    @property
-    def vendorId(self):
-        return 1
-        
-    @property
-    def vendorURL(self):
-        return "http://moshtix.com.au"
-        
 
-# for re-testing specific problematic URLs
-#moshtixCrawler.processSearchURL(3, " http://moshtix.com.au/v2/search?CategoryList=3%2C&Page=5", False)
+    @property
+    def vendor_id(self):
+        return 1
+
+    @property
+    def vendor_url(self):
+        return "http://moshtix.com.au"
+
+
+# for re-testing specific problematic urls
+#moshtixCrawler.process_search_url(3, " http://moshtix.com.au/v2/search?CategoryList=3%2C&Page=5", False)

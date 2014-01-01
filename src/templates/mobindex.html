@@ -16,24 +16,24 @@
 <h2>Find Event Tickets Australia Wide!</h2>
 
 <form id="searchForm" action="/search">
-    <input id="searchBox" type="text" name="Event" value="{{ selectedEvent }}" maxlength="30" placeholder="Enter event name" />
+    <input id="searchBox" type="text" name="Event" value="{{ selected_event }}" maxlength="30" placeholder="Enter event name" />
     <br />
     <select id="stateSelect" name="State">
-        <option value="All" {{ 'selected="selected"' if selectedState=="All"}}>All States</option>
-        <option value="ACT" {{ 'selected="selected"' if selectedState=="ACT"}}>ACT</option>
-        <option value="NSW" {{ 'selected="selected"' if selectedState=="NSW"}}>NSW</option>
-        <option value="QLD" {{ 'selected="selected"' if selectedState=="QLD"}}>QLD</option>
-        <option value="SA"  {{ 'selected="selected"' if selectedState=="SA" }}>SA</option>
-        <option value="TAS" {{ 'selected="selected"' if selectedState=="TAS"}}>TAS</option>
-        <option value="VIC" {{ 'selected="selected"' if selectedState=="VIC"}}>VIC</option>
-        <option value="WA"  {{ 'selected="selected"' if selectedState=="WA" }}>WA</option>
+        <option value="All" {{ 'selected="selected"' if selected_state=="All"}}>All States</option>
+        <option value="ACT" {{ 'selected="selected"' if selected_state=="ACT"}}>ACT</option>
+        <option value="NSW" {{ 'selected="selected"' if selected_state=="NSW"}}>NSW</option>
+        <option value="QLD" {{ 'selected="selected"' if selected_state=="QLD"}}>QLD</option>
+        <option value="SA"  {{ 'selected="selected"' if selected_state=="SA" }}>SA</option>
+        <option value="TAS" {{ 'selected="selected"' if selected_state=="TAS"}}>TAS</option>
+        <option value="VIC" {{ 'selected="selected"' if selected_state=="VIC"}}>VIC</option>
+        <option value="WA"  {{ 'selected="selected"' if selected_state=="WA" }}>WA</option>
     </select>
     <br />
     <select id="categorySelect" name="Category">
-        <option value="0" {{ 'selected="selected"' if selectedCategory=="0"}}>All Categories</option>
-        <option value="1" {{ 'selected="selected"' if selectedCategory=="1"}}>Music & Festivals</option>
-        <option value="2" {{ 'selected="selected"' if selectedCategory=="2"}}>Sport</option>
-        <option value="3" {{ 'selected="selected"' if selectedCategory=="3"}}>Art & Culture</option>
+        <option value="0" {{ 'selected="selected"' if selected_category=="0"}}>All Categories</option>
+        <option value="1" {{ 'selected="selected"' if selected_category=="1"}}>Music & Festivals</option>
+        <option value="2" {{ 'selected="selected"' if selected_category=="2"}}>Sport</option>
+        <option value="3" {{ 'selected="selected"' if selected_category=="3"}}>Art & Culture</option>
     </select>
     <br /><br />
     <input id="searchSubmit" type="submit" value="Search" />
@@ -50,19 +50,19 @@
 </thead>
 
 <tbody>
-    {% for item in eventInfo %}
+    {% for item in event_list %}
         <tr>
-            <td>{{ item.eventDateTime.strftime("%d/%m/%y") }}</td>
-            <td>{{ item.eventName }}</td>
-            <td>{{ item.venueState }}</td>
-            <td><a href="{{ item.URL }}">{{ item.vendorName }}</a></td> 
+            <td>{{ item.event_datetime.strftime("%d/%m/%y") }}</td>
+            <td>{{ item.event_name }}</td>
+            <td>{{ item.venue_state }}</td>
+            <td><a href="{{ item.url }}">{{ item.vendor_name }}</a></td> 
         </tr>
-        {% for ticketItem in item.ticketInfoList %}
+        {% for ticketItem in item.ticket_list %}
             <tr>
                 <td></td>
-	        <td>{{ ticketItem.ticketType }}</td>
-                <td>${{ ticketItem.ticketPrice + ticketItem.bookingFee }}</td>
-                <td>{% if ticketItem.soldOut %} (SOLD OUT!) {% endif %}</td>
+	        <td>{{ ticketItem.ticket_type }}</td>
+                <td>${{ ticketItem.ticket_price + ticketItem.booking_fee }}</td>
+                <td>{% if ticketItem.sold_out %} (SOLD OUT!) {% endif %}</td>
             </tr>
         {% endfor %}
     {% endfor %}
