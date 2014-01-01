@@ -1,8 +1,9 @@
 import time
+import gc
 import psycopg2
 import libcrawler
 import crawlerfactory
-import gc
+import dbconnector
 
 #enable for testing memory usage
 #from guppy import hpy
@@ -95,7 +96,7 @@ def refresh_events(db_con, crawler_fact, events_to_refresh):
             db_con.commit()
 
 # refresher execution starts here
-conn = psycopg2.connect(host="localhost", database="ozevntsdb", user="ozevntsapp", password="test")
+conn = psycopg2.connect(dbconnector.DbConnector.get_db_str("."))
 crawlerFact = crawlerfactory.CrawlerFactory(conn)
 
 while True:

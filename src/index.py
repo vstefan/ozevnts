@@ -3,6 +3,7 @@ import re
 from flask import Flask, render_template, request
 import psycopg2
 from libcrawler import libcrawler
+from libcrawler import dbconnector
 
 
 def load_events(db_con, stored_proc_name, args):
@@ -61,7 +62,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def render_this_week_events():
-    with psycopg2.connect(database="ozevntsdb", user="ozevntsapp", password="test") as db_con:
+    with psycopg2.connect(dbconnector.DbConnector.get_db_str("libcrawler")) as db_con:
         if is_mobile_device(request.user_agent.string):
             return render_template("mobindex.html", event_list=load_soon_events(db_con), selected_event="",
                                    selected_state="All", selected_category=0)
@@ -85,7 +86,7 @@ def render_search_results():
     if category is None:
         category = 0
 
-    with psycopg2.connect(database="ozevntsdb", user="ozevntsapp", password="test") as db_con:
+    with psycopg2.connect(dbconnector.DbConnector.get_db_str("libcrawler")) as db_con:
         if is_mobile_device(request.user_agent.string):
             return render_template("mobindex.html", event_list=search_events(db_con, event, state, category),
                                    selected_event=event, selected_state=state, selected_category=category)
@@ -95,4 +96,5 @@ def render_search_results():
 
 
 if __name__ == '__main__':
+    #app.debug   = True
     app.run(host='0.0.0.0')
