@@ -57,6 +57,7 @@ CREATE TABLE ozevnts.vendor_event
   event_title text,
   state text,
   event_timestamp timestamp without time zone,
+  event_sys_timestamp timestamp without time zone,
   last_refreshed_timestamp timestamp without time zone NOT NULL,
   invalid_ind character(1),
   url text NOT NULL,
@@ -70,7 +71,7 @@ CREATE TABLE ozevnts.vendor_event
       ON UPDATE NO ACTION ON DELETE NO ACTION,
   CONSTRAINT vendor_event_uq1 UNIQUE (url),
   CONSTRAINT vendor_event_uq2 UNIQUE (vendor_id, event_type_id, event_title, state, event_timestamp, invalid_ind),
-  CONSTRAINT ticket_chk3 CHECK (invalid_ind = ANY (ARRAY['Y'::bpchar, NULL::bpchar]))
+  CONSTRAINT vendor_event_chk1 CHECK (invalid_ind = ANY (ARRAY['Y'::bpchar, NULL::bpchar]))
 )WITH (
   OIDS=FALSE
 );

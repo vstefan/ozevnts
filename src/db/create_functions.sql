@@ -39,24 +39,24 @@ BEGIN
           ,vet.sold_out_ind
     from  ozevnts.vendor_event ve, ozevnts.vendor_event_ticket vet
     where ve.invalid_ind is null
-      and ve.event_timestamp > current_timestamp 
+      and ve.event_sys_timestamp > current_timestamp 
       and (
           (-- event in the next 24 hours? refresh every 60 minutes
-           event_timestamp - current_timestamp <= interval '1 day'
+           event_sys_timestamp - current_timestamp <= interval '1 day'
        and current_timestamp - last_refreshed_timestamp >= interval '60 minutes'
            ) or
           (-- event in next 24->48 hours? refresh every 4 hours
-           event_timestamp - current_timestamp > interval '1 day'
-       and event_timestamp - current_timestamp <= interval '2 days'
+           event_sys_timestamp - current_timestamp > interval '1 day'
+       and event_sys_timestamp - current_timestamp <= interval '2 days'
        and current_timestamp - last_refreshed_timestamp >= interval '4 hours'
            ) or
           (-- event in 48->96 hours? refresh every 12 hours
-           event_timestamp - current_timestamp > interval '2 days'
-       and event_timestamp - current_timestamp <= interval '4 days'
+           event_sys_timestamp - current_timestamp > interval '2 days'
+       and event_sys_timestamp - current_timestamp <= interval '4 days'
        and current_timestamp - last_refreshed_timestamp >= interval '12 hours'
            ) or
           (-- event in >96 hours? refresh every day
-           event_timestamp - current_timestamp > interval '4 days'
+           event_sys_timestamp - current_timestamp > interval '4 days'
        and current_timestamp - last_refreshed_timestamp >= interval '1 day'
            )
           )
@@ -128,6 +128,7 @@ BEGIN
        ,event_title
        ,state
        ,event_timestamp
+       ,event_sys_timestamp
        ,last_refreshed_timestamp
        ,invalid_ind
        ,url
@@ -137,6 +138,18 @@ BEGIN
        ,p_event_title
        ,p_state
        ,p_event_timestamp
+       ,case when p_event_timestamp is null then null else 
+            p_event_timestamp at time zone 
+            case p_state
+                when 'ACT' then 'Australia/Canberra'
+                when 'NSW' then 'Australia/NSW'
+                when 'QLD' then 'Australia/Queensland'
+                when 'SA'  then 'Australia/South'
+                when 'TAS' then 'Australia/Tasmania'
+                when 'VIC' then 'Australia/Victoria'
+                when 'WA'  then 'Australia/West'
+            end
+        end
        ,current_timestamp
        ,p_invalid_ind
        ,p_url
@@ -263,8 +276,8 @@ BEGIN
           ,v.title
           ,ve.url
     from ozevnts.vendor_event ve, ozevnts.vendor v, ozevnts.vendor_event_ticket vet
-    where ve.event_timestamp > current_timestamp 
-      and ve.event_timestamp - current_timestamp <= interval '7 days'
+    where ve.event_sys_timestamp > current_timestamp 
+      and ve.event_sys_timestamp - current_timestamp <= interval '7 days'
       and ve.invalid_ind is null
       and ve.vendor_id = v.id
       and vet.vendor_event_id = ve.id
@@ -294,7 +307,7 @@ BEGIN
           ,v.title
           ,ve.url
     from ozevnts.vendor_event ve, ozevnts.vendor v, ozevnts.vendor_event_ticket vet
-    where ve.event_timestamp > current_timestamp
+    where ve.event_sys_timestamp > current_timestamp
       and ve.invalid_ind is null
       and ve.event_title ilike '%' || p_query || '%'
       and case when p_state = 'All' then ve.state = ve.state else ve.state = p_state end
