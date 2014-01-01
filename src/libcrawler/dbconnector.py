@@ -5,6 +5,7 @@ class DbConnector(object):
     @staticmethod
     def get_db_str(dir_path):
         if DbConnector.db_str is None:
+            # note: "dbstr.conf" should be chmod 600
             with open(dir_path + "/dbstr.conf") as db_str_file:
                 DbConnector.db_str = db_str_file.readline()
 
