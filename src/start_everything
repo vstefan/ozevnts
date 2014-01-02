@@ -1,0 +1,5 @@
+nohup ~/bin/python -m libcrawler.runcrawler.py 1 &
+sleep 10m
+nohup ~/bin/python -m libcrawler.runcrawler.py 2 &
+sleep 5m
+nohup ~/bin/python -m libcrawler.refresher.py &

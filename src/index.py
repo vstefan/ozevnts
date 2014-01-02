@@ -3,7 +3,7 @@ import re
 from flask import Flask, render_template, request
 import psycopg2
 from libcrawler import libcrawler
-from libcrawler import dbconnector
+from util import dbconnector
 
 
 def load_events(db_con, stored_proc_name, args):

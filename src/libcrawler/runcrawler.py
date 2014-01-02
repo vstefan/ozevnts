@@ -1,7 +1,7 @@
 import sys
 import psycopg2
 import crawlerfactory
-import dbconnector
+from util import dbconnector
 
 if len(sys.argv) != 2:
     print "Usage: python runcrawler <vendor_id>"
@@ -10,7 +10,7 @@ if len(sys.argv) != 2:
 
 vendor_id   = int(sys.argv[1])
 
-conn        = psycopg2.connect(dbconnector.DbConnector.get_db_str("."))
+conn        = psycopg2.connect(dbconnector.DbConnector.get_db_str("util"))
 crawlerFact = crawlerfactory.CrawlerFactory(conn)
 crawler     = crawlerFact.get_crawler(vendor_id)
 
