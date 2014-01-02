@@ -70,7 +70,7 @@ CREATE TABLE ozevnts.vendor_event
       REFERENCES ozevnts.vendor (id) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION,
   CONSTRAINT vendor_event_uq1 UNIQUE (url),
-  CONSTRAINT vendor_event_uq2 UNIQUE (vendor_id, event_type_id, event_title, state, event_timestamp, invalid_ind),
+  CONSTRAINT vendor_event_uq2 UNIQUE (vendor_id, event_type_id, event_title, state, event_timestamp, invalid_ind, url),
   CONSTRAINT vendor_event_chk1 CHECK (invalid_ind = ANY (ARRAY['Y'::bpchar, NULL::bpchar]))
 )WITH (
   OIDS=FALSE
