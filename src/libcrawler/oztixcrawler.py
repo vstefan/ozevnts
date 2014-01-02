@@ -1,6 +1,7 @@
 import decimal
 import requests
 import time
+import logging
 from bs4 import BeautifulSoup
 from datetime import datetime
 
@@ -67,7 +68,7 @@ class OztixCrawler(libcrawler.ICrawler):
         booking_fee  = None
         sold_out     = False
 
-        print "Now processing: " + event_info.url
+        logging.info("Now processing: " + event_info.url)
 
         # find <div> with id = "venueInfo"
         soup = BeautifulSoup(event_page.text)
@@ -163,7 +164,9 @@ class OztixCrawler(libcrawler.ICrawler):
                                     event_name = search_result_div_tag.contents[0].string
 
                                     if url is None or event_name is None:
-                                        raise Exception("Failed to read url or EventName from gigname search results.")
+                                        error_msg = "Failed to read url or EventName from gigname search results."
+                                        logging.error(error_msg)
+                                        raise Exception(error_msg)
 
                                     next_div_sibling = next_div_sibling.find_next_sibling("div")
 
@@ -173,17 +176,25 @@ class OztixCrawler(libcrawler.ICrawler):
 
                                         event_list.append(event_info)
                             else:
-                                raise Exception("No gigname tags found.")
+                                error_msg = "No gigname tags found."
+                                logging.error(error_msg)
+                                raise Exception(error_msg)
                         elif next_div_sibling is None or next_div_sibling.get("class") is not None and (
                                 next_div_sibling["class"][0] == "state_header"):
                             next_state_header_tag_found = True
                         else:
-                            raise Exception(
-                                "Unknown div tag in gigtable/state_header siblings found: " + str(next_div_sibling))
+                            error_msg = "Unknown div tag in gigtable/state_header siblings found: " + str(
+                                next_div_sibling)
+                            logging.error(error_msg)
+                            raise Exception(error_msg)
                 else:
-                    raise Exception("Venue state not found in state_header tag.")
+                    error_msg = "Venue state not found in state_header tag."
+                    logging.error(error_msg)
+                    raise Exception(error_msg)
         else:
-            raise Exception("No state header tags found.")
+            error_msg = "No state header tags found."
+            logging.error(error_msg)
+            raise Exception(error_msg)
 
         return event_list
 
@@ -198,7 +209,7 @@ class OztixCrawler(libcrawler.ICrawler):
                 fetched = True
             except requests.Timeout, e:
                 #timeout, wait 30 seconds and try again
-                print "Received timeout, retrying in 30 seconds..."
+                logging.debug("Received timeout, retrying in 30 seconds...")
                 time.sleep(30)
 
         return output

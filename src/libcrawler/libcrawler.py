@@ -3,6 +3,7 @@ import time
 import requests
 import codecs
 import gc
+import logging
 
 from bs4 import BeautifulSoup
 #enable for testing memory usage
@@ -66,7 +67,9 @@ class EventInfo:
     def create_tickets(self, db_con):
         """ Record a list of tickets for this event. """
         if self.vendor_event_id is None:
-            raise Exception("Invalid VendorEventId; unable to create_tickets for eventName: " + self.event_name)
+            error_msg = "Invalid VendorEventId; unable to create_tickets for eventName: " + self.event_name
+            logging.error(error_msg)
+            raise Exception(error_msg)
         elif not self.invalid:
             for ticketInfo in self.ticket_list:
                 ticketInfo.create(db_con, self.vendor_event_id)
@@ -123,12 +126,12 @@ def fetch_url(url):
 
     while not fetched:
         try:
-            print "Opening url: " + url
+            logging.info("Opening url: " + url)
             output  = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
             fetched = True
         except requests.Timeout, e:
             #timeout, wait 30 seconds and try again
-            print "Received timeout, retrying in 30 seconds..."
+            logging.debug("Received timeout, retrying in 30 seconds...")
             time.sleep(30)
 
     # for debugging raw response data
@@ -216,7 +219,7 @@ class ICrawler(object):
             #enable for testing memory usage
             #h = hpy()
             #print h.heap()
-            print "Finished crawl cycle, sleeping.."
+            logging.info("Finished crawl cycle, sleeping..")
             time.sleep(60 * 60 * 4)
     # END - ABSTRACT METHODS REQUIRING VENDOR-SPECIFIC IMPLEMENTATION #
 

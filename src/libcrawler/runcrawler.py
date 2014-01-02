@@ -1,4 +1,5 @@
 import sys
+import logging
 import psycopg2
 import crawlerfactory
 from util import dbconnector
@@ -17,4 +18,7 @@ crawler     = crawlerFact.get_crawler(vendor_id)
 if crawler is None:
     print "No crawler found for vendor_id: " + str(vendor_id)
 else:
+    logging.basicConfig(
+        filename="logs/" + crawler.__class__.__name__ + ".log", filemode="w",
+        format="%(asctime)s %(levelname)s : %(message)s", level=logging.NOTSET)
     crawler.run()

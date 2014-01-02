@@ -1,4 +1,6 @@
 import re
+import logging
+import os
 
 from flask import Flask, render_template, request
 import psycopg2
@@ -56,19 +58,22 @@ def is_mobile_device(user_agent):
         return True
     return False
 
-
+ABS_PATH = "."
+logging.basicConfig(
+    filename=ABS_PATH + "/logs/FlaskWorker." + str(os.getpid()) + ".log", filemode="w",
+    format="%(asctime)s %(levelname)s : %(message)s", level=logging.NOTSET)
 app = Flask(__name__)
 
 
 @app.route("/")
 def render_this_week_events():
-    with psycopg2.connect(dbconnector.DbConnector.get_db_str("libcrawler")) as db_con:
+    with psycopg2.connect(dbconnector.DbConnector.get_db_str(ABS_PATH + "/util")) as db_con:
+        template_name = "index.html"
         if is_mobile_device(request.user_agent.string):
-            return render_template("mobindex.html", event_list=load_soon_events(db_con), selected_event="",
-                                   selected_state="All", selected_category=0)
-        else:
-            return render_template("index.html", event_list=load_soon_events(db_con), selected_event="",
-                                   selected_state="All", selected_category=0)
+            template_name = "mobindex.html"
+
+        return render_template(template_name, event_list=load_soon_events(db_con), selected_event="",
+                               selected_state="All", selected_category=0)
 
 
 @app.route("/search")
@@ -86,13 +91,13 @@ def render_search_results():
     if category is None:
         category = 0
 
-    with psycopg2.connect(dbconnector.DbConnector.get_db_str("libcrawler")) as db_con:
+    with psycopg2.connect(dbconnector.DbConnector.get_db_str(ABS_PATH + "/util")) as db_con:
+        template_name = "index.html"
         if is_mobile_device(request.user_agent.string):
-            return render_template("mobindex.html", event_list=search_events(db_con, event, state, category),
-                                   selected_event=event, selected_state=state, selected_category=category)
-        else:
-            return render_template("index.html", event_list=search_events(db_con, event, state, category),
-                                   selected_event=event, selected_state=state, selected_category=category)
+            template_name = "mobindex.html"
+
+        return render_template(template_name, event_list=search_events(db_con, event, state, category),
+                               selected_event=event, selected_state=state, selected_category=category)
 
 
 if __name__ == '__main__':

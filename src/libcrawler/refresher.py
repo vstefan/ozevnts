@@ -1,5 +1,6 @@
 import time
 import gc
+import logging
 import psycopg2
 import libcrawler
 import crawlerfactory
@@ -96,6 +97,8 @@ def refresh_events(db_con, crawler_fact, events_to_refresh):
             db_con.commit()
 
 # refresher execution starts here
+logging.basicConfig(
+    filename="logs/Refresher.log", filemode="w", format="%(asctime)s %(levelname)s : %(message)s", level=logging.NOTSET)
 conn = psycopg2.connect(dbconnector.DbConnector.get_db_str("util"))
 crawlerFact = crawlerfactory.CrawlerFactory(conn)
 
@@ -107,5 +110,5 @@ while True:
     #enable for testing memory usage
     #h = hpy()
     #print h.heap()
-    print "Finished refresh cycle, sleeping.."
+    logging.info("Finished refresh cycle, sleeping..")
     time.sleep(60 * 20)

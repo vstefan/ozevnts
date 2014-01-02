@@ -1,4 +1,5 @@
 import decimal
+import logging
 from bs4 import BeautifulSoup
 from datetime import datetime
 
@@ -35,7 +36,7 @@ class MoshtixCrawler(libcrawler.ICrawler):
         booking_fee  = None
         sold_out     = False
 
-        print "Now processing: " + event_info.url
+        logging.info("Now processing: " + event_info.url)
 
         # find <div> with id = "event-summary-block"
         soup = BeautifulSoup(event_page.text)
@@ -54,10 +55,14 @@ class MoshtixCrawler(libcrawler.ICrawler):
                 event_info.venue_state = venue_tokens[len(venue_tokens) - 1].lstrip()
 
         if event_info.event_datetime is None:
-            raise Exception("Failed to parse event date/time from: " + event_info.url)
+            error_msg = "Failed to parse event date/time from: " + event_info.url
+            logging.error(error_msg)
+            raise Exception(error_msg)
 
         if event_info.venue_state is None:
-            raise Exception("Failed to parse venue state from: " + event_info.url)
+            error_msg = "Failed to parse venue state from: " + event_info.url
+            logging.error(error_msg)
+            raise Exception(error_msg)
 
         # find <table> with id = "event-tickettypetable"
         ticket_table_tag = soup.find("table", id="event-tickettypetable")
@@ -94,8 +99,10 @@ class MoshtixCrawler(libcrawler.ICrawler):
                                     libcrawler.TicketInfo(ticket_num, ticket_type, ticket_price, booking_fee, sold_out))
                                 ticket_num += 1
                             else:
-                                raise Exception("Unknown length of ticket_table_row_tag_col_tags = " + str(
-                                    len(ticket_table_row_tag_col_tags)))
+                                error_msg = "Unknown length of ticket_table_row_tag_col_tags = " + str(
+                                    len(ticket_table_row_tag_col_tags))
+                                logging.error(error_msg)
+                                raise Exception(error_msg)
         else:
             event_info.invalid = True
 
@@ -131,7 +138,9 @@ class MoshtixCrawler(libcrawler.ICrawler):
                 if url is not None and event_name is not None and url not in known_urls:
                     event_list.append(libcrawler.EventInfo(self.vendor_id, event_type_id, event_name, url))
         else:
-            raise Exception("No searchresult_content div tags found.")
+            error_msg = "No searchresult_content div tags found."
+            logging.error(error_msg)
+            raise Exception(error_msg)
 
         return event_list
 
