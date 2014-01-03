@@ -275,6 +275,7 @@ BEGIN
           ,vet.sold_out_ind
           ,v.title
           ,ve.url
+          ,ve.id
     from ozevnts.vendor_event ve, ozevnts.vendor v, ozevnts.vendor_event_ticket vet
     where ve.event_sys_timestamp > current_timestamp 
       and ve.event_sys_timestamp - current_timestamp <= interval '7 days'
@@ -306,6 +307,7 @@ BEGIN
           ,vet.sold_out_ind
           ,v.title
           ,ve.url
+          ,ve.id
     from ozevnts.vendor_event ve, ozevnts.vendor v, ozevnts.vendor_event_ticket vet
     where ve.event_sys_timestamp > current_timestamp
       and ve.invalid_ind is null

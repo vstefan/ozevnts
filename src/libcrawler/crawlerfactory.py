@@ -1,5 +1,6 @@
 import moshtixcrawler
 import oztixcrawler
+import ticketmastercrawler
 
 
 class CrawlerFactory(object):
@@ -12,9 +13,11 @@ class CrawlerFactory(object):
         self.crawler_map = {}
         moshtix_crawler  = moshtixcrawler.MoshtixCrawler(db_con)
         oztix_crawler    = oztixcrawler.OztixCrawler(db_con)
+        tm_crawler       = ticketmastercrawler.TicketmasterCrawler(db_con)
 
         self.crawler_map[moshtix_crawler.vendor_id] = moshtix_crawler
         self.crawler_map[oztix_crawler.vendor_id]   = oztix_crawler
+        self.crawler_map[tm_crawler.vendor_id]      = tm_crawler
 
     def get_crawler(self, vendor_id):
         """ Given a vendorId, returns an appropriate crawler. """

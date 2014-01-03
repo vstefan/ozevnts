@@ -46,7 +46,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON ozevnts.vendor TO ozevntsapp;
 GRANT USAGE ON ozevnts.vendor_id_seq TO ozevntsapp;
 
 insert into ozevnts.vendor(title, url) values('Moshtix', 'http://moshtix.com.au');
-insert into ozevnts.vendor(title, url) values('Oztix', 'http://www.oztix.com.au');
+insert into ozevnts.vendor(title, url) values('Oztix', 'http://oztix.com.au');
+insert into ozevnts.vendor(title, url) values('Ticketmaster', 'http://ticketmaster.com.au');
 
 -- DROP TABLE ozevnts.vendor_event;
 CREATE TABLE ozevnts.vendor_event
@@ -133,3 +134,7 @@ insert into ozevnts.vendor_listing(vendor_id, event_type_id, search_url, paginat
 insert into ozevnts.vendor_listing(vendor_id, event_type_id, search_url, paginated_ind) values (2, 2, 'http://www.oztix.com.au/OzTix/OzTixEvents/OzTixSports/tabid/1096/Default.aspx', NULL);
 insert into ozevnts.vendor_listing(vendor_id, event_type_id, search_url, paginated_ind) values (2, 3, 'http://www.oztix.com.au/OzTix/OzTixEvents/OzTixArts/tabid/1095/Default.aspx', NULL);
 insert into ozevnts.vendor_listing(vendor_id, event_type_id, search_url, paginated_ind) values (2, 3, 'http://www.oztix.com.au/OzTix/OzTixEvents/OztixComedy.aspx', NULL);
+
+insert into ozevnts.vendor_listing(vendor_id, event_type_id, search_url, paginated_ind) values (3, 1, 'http://www.ticketmaster.com.au/json/browse/music', NULL);
+insert into ozevnts.vendor_listing(vendor_id, event_type_id, search_url, paginated_ind) values (3, 2, 'http://www.ticketmaster.com.au/json/browse/sports', NULL);
+insert into ozevnts.vendor_listing(vendor_id, event_type_id, search_url, paginated_ind) values (3, 3, 'http://www.ticketmaster.com.au/json/browse/arts', NULL);

@@ -5,7 +5,6 @@ import codecs
 import gc
 import logging
 
-from bs4 import BeautifulSoup
 #enable for testing memory usage
 #from guppy import hpy
 
@@ -135,9 +134,9 @@ def fetch_url(url):
             time.sleep(30)
 
     # for debugging raw response data
-    #out_file = codecs.open("output.html", "w", "utf-8")
-    #out_file.write(output.text)
-    #out_file.close()
+    out_file = codecs.open("output.html", "w", "utf-8")
+    out_file.write(output.text)
+    out_file.close()
 
     return output
 # END - MISC UTILITY FUNCTIONS #
@@ -152,7 +151,7 @@ class ICrawler(object):
 
     # START - ABSTRACT METHODS REQUIRING VENDOR-SPECIFIC IMPLEMENTATION #
     @abc.abstractmethod
-    def extract_new_events(self, event_type_id, known_urls, search_results_soup):
+    def extract_new_events(self, event_type_id, known_urls, search_results):
         """ Parses search results to extract basic event info for unknown events. """
         return
 
@@ -162,7 +161,7 @@ class ICrawler(object):
         return
 
     @abc.abstractmethod
-    def extract_subsequent_urls(self, search_results_soup):
+    def extract_subsequent_urls(self, search_results):
         """ Handles pagination from vendor-specific search results. """
         return
 
@@ -175,34 +174,35 @@ class ICrawler(object):
         return fetch_url(url)
 
     @abc.abstractmethod
-    def extract_event_and_ticket_info(self, event_type_id, known_urls, search_results_soup):
+    def extract_event_and_ticket_info(self, event_type_id, known_urls, search_results):
         """ Extracts event & ticket info from retrieved search results. """
-        extracted_event_info_list = self.extract_new_events(event_type_id, known_urls, search_results_soup)
+        extracted_event_info_list = self.extract_new_events(event_type_id, known_urls, search_results)
 
-        for extractedEventInfo in extracted_event_info_list:
-            event_page = self.fetch_event_url(extractedEventInfo.url)
-            self.extract_ticket_info(extractedEventInfo, event_page)
-            extractedEventInfo.create_event(self.db_con)
-            extractedEventInfo.create_tickets(self.db_con)
+        while extracted_event_info_list:
+            extracted_event_info = extracted_event_info_list.pop()
+            event_page           = self.fetch_event_url(extracted_event_info.url).text
+            self.extract_ticket_info(extracted_event_info, event_page)
+            extracted_event_info.create_event(self.db_con)
+            extracted_event_info.create_tickets(self.db_con)
 
             self.db_con.commit()
+            event_page           = None
+            extracted_event_info = None
+            gc.collect()
 
     @abc.abstractmethod
     def process_search_url(self, event_type_id, search_url, paginated_ind):
         """ Processes a search url to extract all event/ticket info. """
-        known_urls = self.get_known_urls()
+        known_urls     = self.get_known_urls()
+        search_results = fetch_url(search_url).text
 
-        search_results      = fetch_url(search_url)
-        search_results_soup = BeautifulSoup(search_results.text)
-
-        self.extract_event_and_ticket_info(event_type_id, known_urls, search_results_soup)
+        self.extract_event_and_ticket_info(event_type_id, known_urls, search_results)
 
         if paginated_ind:
-            for subsequent_url in self.extract_subsequent_urls(search_results_soup):
-                known_urls          = self.get_known_urls()
-                search_results      = fetch_url(subsequent_url)
-                search_results_soup = BeautifulSoup(search_results.text)
-                self.extract_event_and_ticket_info(event_type_id, known_urls, search_results_soup)
+            for subsequent_url in self.extract_subsequent_urls(search_results):
+                known_urls     = self.get_known_urls()
+                search_results = fetch_url(subsequent_url).text
+                self.extract_event_and_ticket_info(event_type_id, known_urls, search_results)
 
     @abc.abstractmethod
     def run(self):
@@ -238,7 +238,7 @@ class ICrawler(object):
     # START - HELPER METHODS #
     def load_tickets_for_event(self, event_info):
         """ Given a EventInfo with a valid url, loads tickets for that event. """
-        event_page = self.fetch_event_url(event_info.url)
+        event_page = self.fetch_event_url(event_info.url).text
         self.extract_ticket_info(event_info, event_page)
 
     def get_known_urls(self):

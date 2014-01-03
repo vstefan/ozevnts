@@ -18,16 +18,18 @@ def load_events(db_con, stored_proc_name, args):
         with db_con.cursor(args[0]) as cur2:
             for record in cur2:
                 new_ticket = libcrawler.TicketInfo(None, unicode(record[3], "utf-8"), record[4], record[5], record[6])
+                vendor_event_id = int(record[9])
 
                 # first event or new event?
-                if current_event is None or current_event.event_name != unicode(record[1], "utf-8"):
+                if current_event is None or current_event.vendor_event_id != vendor_event_id:
                     if current_event is not None:
                         event_list.append(current_event)
 
                     current_event = libcrawler.EventInfo(None, None, unicode(record[1], "utf-8"), record[8])
-                    current_event.vendor_name    = unicode(record[7], "utf-8")
-                    current_event.venue_state    = unicode(record[2], "utf-8")
-                    current_event.event_datetime = record[0]
+                    current_event.vendor_name     = unicode(record[7], "utf-8")
+                    current_event.venue_state     = unicode(record[2], "utf-8")
+                    current_event.event_datetime  = record[0]
+                    current_event.vendor_event_id = vendor_event_id
 
                 current_event.ticket_list.append(new_ticket)
 

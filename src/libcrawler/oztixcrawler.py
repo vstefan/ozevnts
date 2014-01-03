@@ -71,7 +71,7 @@ class OztixCrawler(libcrawler.ICrawler):
         logging.info("Now processing: " + event_info.url)
 
         # find <div> with id = "venueInfo"
-        soup = BeautifulSoup(event_page.text)
+        soup = BeautifulSoup(event_page)
         event_summary_div_tag = soup.find("div", class_="venueInfo")
 
         if event_summary_div_tag:
@@ -109,9 +109,9 @@ class OztixCrawler(libcrawler.ICrawler):
                     if ticket_table_row_tag_col_tags is not None:
                         if len(ticket_table_row_tag_col_tags) >= 2 and ticket_table_row_tag_col_tags[0].contents[
                                 0].string is not None and ticket_table_row_tag_col_tags[1].string is not None:
-                            ticket_type = ticket_table_row_tag_col_tags[0].contents[0].string.strip()
+                            ticket_type  = ticket_table_row_tag_col_tags[0].contents[0].string.strip()
                             ticket_price = decimal.Decimal(ticket_table_row_tag_col_tags[1].string[4:])
-                            booking_fee = decimal.Decimal(0)
+                            booking_fee  = decimal.Decimal(0)
 
                             if len(ticket_table_row_tag_col_tags) >= 3 and ticket_table_row_tag_col_tags[2].contents[
                                 0].string is not None and ticket_table_row_tag_col_tags[2].contents[
@@ -137,12 +137,12 @@ class OztixCrawler(libcrawler.ICrawler):
             event_info.invalid = True
 
     # oztix shows everything on one page for each category, no pagination required.
-    def extract_subsequent_urls(self, search_results_soup):
+    def extract_subsequent_urls(self, search_results):
         return
 
-    def extract_new_events(self, event_type_id, known_urls, search_results_soup):
-        event_list = []
-
+    def extract_new_events(self, event_type_id, known_urls, search_results):
+        event_list            = []
+        search_results_soup   = BeautifulSoup(search_results)
         state_header_div_tags = search_results_soup.find_all("div", class_="state_header")
 
         if state_header_div_tags is not None and len(state_header_div_tags) > 0:
@@ -161,7 +161,7 @@ class OztixCrawler(libcrawler.ICrawler):
                             if search_result_div_tags is not None and len(search_result_div_tags) > 0:
                                 for search_result_div_tag in search_result_div_tags:
                                     url        = search_result_div_tag.contents[0]["href"]
-                                    event_name = search_result_div_tag.contents[0].string
+                                    event_name = search_result_div_tag.contents[0].string.replace("&#39;", "'")
 
                                     if url is None or event_name is None:
                                         error_msg = "Failed to read url or EventName from gigname search results."
@@ -214,8 +214,8 @@ class OztixCrawler(libcrawler.ICrawler):
 
         return output
 
-    def extract_event_and_ticket_info(self, event_type_id, known_urls, search_results_soup):
-        super(OztixCrawler, self).extract_event_and_ticket_info(event_type_id, known_urls, search_results_soup)
+    def extract_event_and_ticket_info(self, event_type_id, known_urls, search_results):
+        super(OztixCrawler, self).extract_event_and_ticket_info(event_type_id, known_urls, search_results)
 
     def process_search_url(self, event_type_id, search_url, paginated_ind):
         super(OztixCrawler, self).process_search_url(event_type_id, search_url, paginated_ind)
@@ -229,7 +229,7 @@ class OztixCrawler(libcrawler.ICrawler):
 
     @property
     def vendor_url(self):
-        return "http://oztix.com.au"
+        return "http://www.oztix.com.au"
 
 
 # for re-testing specific problematic urls

@@ -43,7 +43,8 @@ def load_events_to_refresh(db_con):
 def refresh_events(db_con, crawler_fact, events_to_refresh):
     event_ids_to_mark_refreshed = []
 
-    for event_to_refresh in events_to_refresh:
+    while events_to_refresh:
+        event_to_refresh  = events_to_refresh.pop()
         latest_event_data = libcrawler.EventInfo(event_to_refresh.vendor_id, event_to_refresh.event_type_id,
                                                  event_to_refresh.event_name, event_to_refresh.url)
         latest_event_data.vendor_event_id = event_to_refresh.vendor_event_id
@@ -53,10 +54,11 @@ def refresh_events(db_con, crawler_fact, events_to_refresh):
         existing_num_tickets = len(event_to_refresh.ticket_list)
         new_num_tickets      = len(latest_event_data.ticket_list)
 
-        if latest_event_data.invalid:
-            latest_event_data.invalidate_event(db_con)
-            db_con.commit()
-        else:
+        # don't do this anymore, leave the event as is if marked invalid
+        #if latest_event_data.invalid:
+        #    latest_event_data.invalidate_event(db_con)
+        #    db_con.commit()
+        if not latest_event_data.invalid:
             # same number or more ticket types? only update any changes to existing tickets
             if existing_num_tickets == new_num_tickets or new_num_tickets > existing_num_tickets:
                 for idx, existing_ticket in enumerate(event_to_refresh.ticket_list):
@@ -90,6 +92,10 @@ def refresh_events(db_con, crawler_fact, events_to_refresh):
 
             event_ids_to_mark_refreshed.append(latest_event_data.vendor_event_id)
 
+        event_to_refresh  = None
+        latest_event_data = None
+        gc.collect()
+
     # now mark all events refreshed
     if event_ids_to_mark_refreshed:
         with db_con.cursor() as cur1:
@@ -99,13 +105,12 @@ def refresh_events(db_con, crawler_fact, events_to_refresh):
 # refresher execution starts here
 logging.basicConfig(
     filename="logs/Refresher.log", filemode="w", format="%(asctime)s %(levelname)s : %(message)s", level=logging.NOTSET)
-conn = psycopg2.connect(dbconnector.DbConnector.get_db_str("util"))
+conn        = psycopg2.connect(dbconnector.DbConnector.get_db_str("util"))
 crawlerFact = crawlerfactory.CrawlerFactory(conn)
 
 while True:
     events_to_refresh = load_events_to_refresh(conn)
     refresh_events(conn, crawlerFact, events_to_refresh)
-    events_to_refresh = None
     gc.collect()
     #enable for testing memory usage
     #h = hpy()

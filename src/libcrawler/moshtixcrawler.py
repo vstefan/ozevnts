@@ -39,7 +39,7 @@ class MoshtixCrawler(libcrawler.ICrawler):
         logging.info("Now processing: " + event_info.url)
 
         # find <div> with id = "event-summary-block"
-        soup = BeautifulSoup(event_page.text)
+        soup = BeautifulSoup(event_page)
         event_summary_div_tag = soup.find("div", id="event-summary-block")
 
         if event_summary_div_tag is not None:
@@ -111,9 +111,10 @@ class MoshtixCrawler(libcrawler.ICrawler):
         if not event_info.ticket_list:
             event_info.invalid = True
 
-    def extract_subsequent_urls(self, search_results_soup):
-        subsequent_urls = []
-        pagination_tag  = search_results_soup.find("section", class_="pagination")
+    def extract_subsequent_urls(self, search_results):
+        subsequent_urls     = []
+        search_results_soup = BeautifulSoup(search_results)
+        pagination_tag      = search_results_soup.find("section", class_="pagination")
 
         if pagination_tag is not None:
             ahref_tags = pagination_tag.find_all("a")
@@ -125,15 +126,15 @@ class MoshtixCrawler(libcrawler.ICrawler):
 
         return subsequent_urls
 
-    def extract_new_events(self, event_type_id, known_urls, search_results_soup):
-        event_list = []
-
+    def extract_new_events(self, event_type_id, known_urls, search_results):
+        event_list             = []
+        search_results_soup    = BeautifulSoup(search_results)
         search_result_div_tags = search_results_soup.find_all("div", {"class": "searchresult_content"})
 
         if search_result_div_tags is not None and len(search_result_div_tags) > 0:
             for search_result_div_tag in search_result_div_tags:
-                url = search_result_div_tag.contents[1]["href"]
-                event_name = search_result_div_tag.contents[3].contents[0].string
+                url        = search_result_div_tag.contents[1]["href"]
+                event_name = search_result_div_tag.contents[3].contents[0].string.replace("&#39;", "'")
 
                 if url is not None and event_name is not None and url not in known_urls:
                     event_list.append(libcrawler.EventInfo(self.vendor_id, event_type_id, event_name, url))
@@ -147,8 +148,8 @@ class MoshtixCrawler(libcrawler.ICrawler):
     def fetch_event_url(self, url):
         return super(MoshtixCrawler, self).fetch_event_url(url)
 
-    def extract_event_and_ticket_info(self, event_type_id, known_urls, search_results_soup):
-        super(MoshtixCrawler, self).extract_event_and_ticket_info(event_type_id, known_urls, search_results_soup)
+    def extract_event_and_ticket_info(self, event_type_id, known_urls, search_results):
+        super(MoshtixCrawler, self).extract_event_and_ticket_info(event_type_id, known_urls, search_results)
 
     def process_search_url(self, event_type_id, search_url, paginated_ind):
         super(MoshtixCrawler, self).process_search_url(event_type_id, search_url, paginated_ind)
@@ -162,7 +163,7 @@ class MoshtixCrawler(libcrawler.ICrawler):
 
     @property
     def vendor_url(self):
-        return "http://moshtix.com.au"
+        return "http://www.moshtix.com.au"
 
 
 # for re-testing specific problematic urls
