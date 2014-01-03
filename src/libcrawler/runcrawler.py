@@ -4,6 +4,11 @@ import psycopg2
 import crawlerfactory
 from util import dbconnector
 
+"""
+    Used to run a crawler individually.
+    Normal execution happens via workscheduler.
+"""
+
 if len(sys.argv) != 2:
     print "Usage: python runcrawler <vendor_id>"
     print "Exiting.."
@@ -20,5 +25,5 @@ if crawler is None:
 else:
     logging.basicConfig(
         filename="logs/" + crawler.__class__.__name__ + ".log", filemode="w",
-        format="%(asctime)s %(levelname)s : %(message)s", level=logging.NOTSET)
+        format="%(asctime)s %(module)s:%(levelname)s: %(message)s", level=logging.NOTSET)
     crawler.run()

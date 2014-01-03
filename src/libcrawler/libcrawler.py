@@ -206,21 +206,19 @@ class ICrawler(object):
 
     @abc.abstractmethod
     def run(self):
-        """ Starts crawling. """
-        while True:
-            vendor_search_urls = self.get_vendor_search_urls()
+        """ Performs one crawl cycle. """
+        logging.info("Commencing crawl cycle for vendor_id: " + str(self.vendor_id))
+        vendor_search_urls = self.get_vendor_search_urls()
 
-            for vendor_search_url in vendor_search_urls:
-                self.process_search_url(vendor_search_url.event_type_id, vendor_search_url.search_url,
-                                        vendor_search_url.paginated_ind)
+        for vendor_search_url in vendor_search_urls:
+            self.process_search_url(vendor_search_url.event_type_id, vendor_search_url.search_url,
+                                    vendor_search_url.paginated_ind)
 
-            vendor_search_urls = None
-            gc.collect()
-            #enable for testing memory usage
-            #h = hpy()
-            #print h.heap()
-            logging.info("Finished crawl cycle, sleeping..")
-            time.sleep(60 * 60 * 4)
+        vendor_search_urls = None
+        logging.info("Finished crawl cycle.")
+        #enable for testing memory usage
+        #h = hpy()
+        #print h.heap()
     # END - ABSTRACT METHODS REQUIRING VENDOR-SPECIFIC IMPLEMENTATION #
 
     # START - ABSTRACT PROPERTIES REQUIRING VENDOR-SPECIFIC VALUES #

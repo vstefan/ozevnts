@@ -1,4 +1,3 @@
-import time
 import gc
 import logging
 import psycopg2
@@ -102,18 +101,16 @@ def refresh_events(db_con, crawler_fact, events_to_refresh):
             cur1.callproc("ozevnts.mark_events_refreshed", [event_ids_to_mark_refreshed])
             db_con.commit()
 
-# refresher execution starts here
-logging.basicConfig(
-    filename="logs/Refresher.log", filemode="w", format="%(asctime)s %(levelname)s : %(message)s", level=logging.NOTSET)
-conn        = psycopg2.connect(dbconnector.DbConnector.get_db_str("util"))
-crawlerFact = crawlerfactory.CrawlerFactory(conn)
 
-while True:
-    events_to_refresh = load_events_to_refresh(conn)
-    refresh_events(conn, crawlerFact, events_to_refresh)
-    gc.collect()
-    #enable for testing memory usage
-    #h = hpy()
-    #print h.heap()
-    logging.info("Finished refresh cycle, sleeping..")
-    time.sleep(60 * 20)
+def run():
+    """ Performs one refresh cycle."""
+    with psycopg2.connect(dbconnector.DbConnector.get_db_str("util")) as conn:
+        crawler_fact = crawlerfactory.CrawlerFactory(conn)
+
+        logging.info("Commencing refresh cycle..")
+        events_to_refresh = load_events_to_refresh(conn)
+        refresh_events(conn, crawler_fact, events_to_refresh)
+        logging.info("Finished refresh cycle, sleeping..")
+        #enable for testing memory usage
+        #h = hpy()
+        #print h.heap()

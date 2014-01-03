@@ -63,7 +63,7 @@ def is_mobile_device(user_agent):
 ABS_PATH = "."
 logging.basicConfig(
     filename=ABS_PATH + "/logs/FlaskWorker." + str(os.getpid()) + ".log", filemode="w",
-    format="%(asctime)s %(levelname)s : %(message)s", level=logging.NOTSET)
+    format="%(asctime)s %(module)s:%(levelname)s: %(message)s", level=logging.NOTSET)
 app = Flask(__name__)
 
 

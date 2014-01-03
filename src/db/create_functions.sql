@@ -41,14 +41,14 @@ BEGIN
     where ve.invalid_ind is null
       and ve.event_sys_timestamp > current_timestamp 
       and (
-          (-- event in the next 24 hours? refresh every 60 minutes
+          (-- event in the next 24 hours? refresh every 120 minutes
            event_sys_timestamp - current_timestamp <= interval '1 day'
-       and current_timestamp - last_refreshed_timestamp >= interval '60 minutes'
+       and current_timestamp - last_refreshed_timestamp >= interval '120 minutes'
            ) or
-          (-- event in next 24->48 hours? refresh every 4 hours
+          (-- event in next 24->48 hours? refresh every 6 hours
            event_sys_timestamp - current_timestamp > interval '1 day'
        and event_sys_timestamp - current_timestamp <= interval '2 days'
-       and current_timestamp - last_refreshed_timestamp >= interval '4 hours'
+       and current_timestamp - last_refreshed_timestamp >= interval '6 hours'
            ) or
           (-- event in 48->96 hours? refresh every 12 hours
            event_sys_timestamp - current_timestamp > interval '2 days'
