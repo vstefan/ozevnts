@@ -37,9 +37,9 @@ class ExecItem:
 # ensures only 1 crawler/refresher running at once
 # to minimise memory usage
 exec_ids = [0,  # refresher,
-            1,  # crawler,
-            2,  # crawler,
-            3]  # crawler
+            1,  # crawler: moshtix,
+            2,  # crawler: oztix,
+            3]  # crawler: ticketmaster
 
 # maps ids to execute against last exec finish time, time (sec) between execs, and reference run() function
 exec_time_map = {0: ExecItem(None, 60*20,   run_refresher),
@@ -56,7 +56,7 @@ while True:
 
     for exec_id in exec_ids:
         exec_item = exec_time_map.get(exec_id)
-        time_now     = datetime.datetime.now()
+        time_now  = datetime.datetime.now()
 
         if exec_item.last_exec_fin_time is None or (
             time_now - datetime.timedelta(
