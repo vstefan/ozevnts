@@ -72,6 +72,11 @@ while True:
 
             if min_next_exec_time is None or next_exec_time < min_next_exec_time:
                 min_next_exec_time = next_exec_time
+        else:
+            next_exec_time = exec_item.last_exec_fin_time + datetime.timedelta(seconds=exec_item.sec_between_execs)
+
+            if min_next_exec_time is None or next_exec_time < min_next_exec_time:
+                min_next_exec_time = next_exec_time
 
     # if next job to execute is in the future, sleep until that time
     time_now = datetime.datetime.now()
