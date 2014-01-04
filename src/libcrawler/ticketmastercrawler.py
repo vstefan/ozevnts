@@ -44,7 +44,7 @@ class TicketmasterCrawler(libcrawler.ICrawler):
                 ticket_num = 1
 
                 for ticket_type_tag in ticket_type_tags:
-                    ticket_type = ticket_type_tag.contents[1].contents[0].string.replace("&#39;", "'")
+                    ticket_type = ticket_type_tag.contents[1].contents[0].string.strip().replace("&#39;", "'")
                     span_tags   = ticket_type_tag.find_all("span", class_="widget-wrapper")
 
                     if ticket_type.lower() != unicode("special offers and promotions", "utf-8"):
