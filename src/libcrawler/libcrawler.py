@@ -134,9 +134,9 @@ def fetch_url(url):
             time.sleep(30)
 
     # for debugging raw response data
-    out_file = codecs.open("output.html", "w", "utf-8")
-    out_file.write(output.text)
-    out_file.close()
+    #out_file = codecs.open("output.html", "w", "utf-8")
+    #out_file.write(output.text)
+    #out_file.close()
 
     return output
 # END - MISC UTILITY FUNCTIONS #
