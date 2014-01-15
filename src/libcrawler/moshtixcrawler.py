@@ -82,15 +82,15 @@ class MoshtixCrawler(libcrawler.ICrawler):
                         # each ticket type should have 6 columns (ticket type, sale date, ticket price,
                         # booking fee, total price, amount of tickets or sold out)
                         if ticket_table_row_tag_col_tags is not None:
-                            if len(ticket_table_row_tag_col_tags) == 7:
+                            if len(ticket_table_row_tag_col_tags) == 8:
                                 ticket_type  = ticket_table_row_tag_col_tags[0].contents[2].string.strip()
                                 ticket_price = decimal.Decimal(
                                     ticket_table_row_tag_col_tags[2].string[1:].replace(",", ""))
                                 booking_fee  = decimal.Decimal(ticket_table_row_tag_col_tags[4].string[1:].replace(
                                     ",", ""))
 
-                                if len(ticket_table_row_tag_col_tags[6].contents) == 1:
-                                    ticket_selling_str = ticket_table_row_tag_col_tags[6].string.strip()
+                                if len(ticket_table_row_tag_col_tags[7].contents) == 1:
+                                    ticket_selling_str = ticket_table_row_tag_col_tags[7].string.strip()
 
                                     if ticket_selling_str.lower() == "allocation exhausted":
                                         sold_out = True
