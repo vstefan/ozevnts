@@ -133,8 +133,13 @@ class MoshtixCrawler(libcrawler.ICrawler):
 
         if search_result_div_tags is not None and len(search_result_div_tags) > 0:
             for search_result_div_tag in search_result_div_tags:
-                url        = search_result_div_tag.contents[1]["href"]
-                event_name = search_result_div_tag.contents[3].contents[0].string.replace("&#39;", "'")
+                # old style moshtix
+                #url        = search_result_div_tag.contents[1]["href"]
+                #event_name = search_result_div_tag.contents[3].contents[0].string.replace("&#39;", "'")
+
+                # new style moshtix
+                url         = self.vendor_url + search_result_div_tag.parent.parent["href"]
+                event_name  = search_result_div_tag.contents[1].string.strip().replace("&#39;", "'")
 
                 if url is not None and event_name is not None and url not in known_urls:
                     event_list.append(libcrawler.EventInfo(self.vendor_id, event_type_id, event_name, url))

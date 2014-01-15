@@ -111,7 +111,7 @@ def run():
         logging.info("Commencing refresh cycle..")
         events_to_refresh = load_events_to_refresh(conn)
         refresh_events(conn, crawler_fact, events_to_refresh)
-        logging.info("Finished refresh cycle, sleeping..")
+        logging.info("Finished refresh cycle.")
         #enable for testing memory usage
         #h = hpy()
         #print h.heap()
