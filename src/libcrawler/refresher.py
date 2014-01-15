@@ -70,8 +70,9 @@ def refresh_events(db_con, crawler_fact, events_to_refresh):
                 for idx in range(existing_num_tickets, new_num_tickets):
                     latest_event_data.ticket_list[idx].create(db_con, latest_event_data.vendor_event_id)
                     db_con.commit()
-            # less ticket types? mark any non-existent ones as sold out
-            elif new_num_tickets < existing_num_tickets:
+            # less ticket types? mark any non-existent ones as sold out, unless its ticket master
+            # who sometimes shows tickets not available on their website for a period of time
+            elif new_num_tickets < existing_num_tickets and crawler.vendor_id != 3:
                 for existing_ticket in event_to_refresh.ticket_list:
                     if not existing_ticket.sold_out:
                         found_ticket = None
